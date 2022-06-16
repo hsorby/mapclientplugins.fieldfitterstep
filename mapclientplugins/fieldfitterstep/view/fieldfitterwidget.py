@@ -27,17 +27,16 @@ def QLineEdit_parseVector(lineedit):
     return None
 
 
-def QLineEdit_parseRealNonNegative(lineedit):
+def QLineEdit_parseReal(lineedit):
     """
-    Return non-negative real value from line edit text, or negative if failed.
+    Return real value from line edit text, or None if failed.
     """
     try:
         value = float(lineedit.text())
-        if value >= 0.0:
-            return value
+        return value
     except ValueError:
         pass
-    return -1.0
+    return None
 
 
 class FieldFitterWidget(QtWidgets.QWidget):
@@ -136,7 +135,7 @@ class FieldFitterWidget(QtWidgets.QWidget):
         """
         Update fit widgets to display settings for Fitter.
         """
-        self._ui.identifier_label.setText("FieldFitter:  " + self._model.getIdentifier())
+        self._ui.identifier_label.setText("Field Fitter:  " + self._model.getIdentifier())
         self._ui.configDataCoordinates_fieldChooser.setField(self._fitter.getDataCoordinatesField())
         self._ui.configModelCoordinates_fieldChooser.setField(self._fitter.getModelCoordinatesField())
         self._ui.configModelFitGroup_fieldChooser.setField(self._fitter.getModelFitGroup())
@@ -197,7 +196,11 @@ class FieldFitterWidget(QtWidgets.QWidget):
         fitFieldModel = QtGui.QStandardItemModel(self._ui.fitFields_listView)
         fitFieldNames = self._fitter.getFitFieldNames()
         for fitFieldName in fitFieldNames:
-            item = QtGui.QStandardItem(fitFieldName)
+            displayName = fitFieldName
+            timeCount = self._fitter.getFieldTimeCount(fitFieldName)
+            if timeCount:
+                displayName += " (" + str(timeCount) + " times)"
+            item = QtGui.QStandardItem(displayName)
             item.setData(fitFieldName)
             item.setEditable(False)
             item.setCheckable(True)
@@ -234,10 +237,10 @@ class FieldFitterWidget(QtWidgets.QWidget):
         """
         model = modelIndex.model()
         item = model.itemFromIndex(modelIndex)
-        name = item.data()
-        if not self._fitter.setFitField(name, item.checkState() == QtCore.Qt.Checked):
+        fitFieldName = item.data()
+        if not self._model.setCurrentFitFieldName(fitFieldName, item.checkState() == QtCore.Qt.Checked):
             item.setCheckState(QtCore.Qt.Unchecked)
-        self._model.setCurrentFitFieldName(name)
+        self._updateTimeWidgets()
 
     def _updateParametersGradient1Penalty(self):
         s = ", ".join(realFormat.format(e) for e in self._fitter.getGradient1Penalty())
@@ -263,6 +266,7 @@ class FieldFitterWidget(QtWidgets.QWidget):
         self._model.fitCurrentField()
         if update:
             self._updateFitFieldsListView()
+        self._updateTimeWidgets()
 
     def _doneButtonClicked(self):
         self._model.done()
@@ -282,6 +286,7 @@ class FieldFitterWidget(QtWidgets.QWidget):
         self._ui.displayNodePoints_checkBox.clicked.connect(self._displayNodePointsClicked)
         self._ui.displayNodeNumbers_checkBox.clicked.connect(self._displayNodeNumbersClicked)
         self._ui.displayElementAxes_checkBox.clicked.connect(self._displayElementAxesClicked)
+        self._ui.displayElementFieldPoints_checkBox.clicked.connect(self._displayElementFieldPointsClicked)
         self._ui.displayElementNumbers_checkBox.clicked.connect(self._displayElementNumbersClicked)
         self._ui.displayLines_checkBox.clicked.connect(self._displayLinesClicked)
         self._ui.displayLinesExterior_checkBox.clicked.connect(self._displayLinesExteriorClicked)
@@ -294,6 +299,8 @@ class FieldFitterWidget(QtWidgets.QWidget):
         self._ui.displayFieldContoursCount_spinBox.valueChanged.connect(self._displayFieldContoursCountValueChanged)
         self._ui.stdViews_pushButton.clicked.connect(self._stdViewsButtonClicked)
         self._ui.viewAll_pushButton.clicked.connect(self._viewAllButtonClicked)
+        self._ui.displayTime_lineEdit.editingFinished.connect(self._displayTimeEntered)
+        self._ui.displayTime_horizontalSlider.valueChanged.connect(self._displayTimeSliderValueChanged)
 
     def _updateDisplayWidgets(self):
         """
@@ -311,8 +318,9 @@ class FieldFitterWidget(QtWidgets.QWidget):
             self._ui.displayDataFieldLabelsDelta_radioButton.setChecked(True)
         self._ui.displayNodePoints_checkBox.setChecked(self._model.isDisplayNodePoints())
         self._ui.displayNodeNumbers_checkBox.setChecked(self._model.isDisplayNodeNumbers())
-        self._ui.displayElementNumbers_checkBox.setChecked(self._model.isDisplayElementNumbers())
         self._ui.displayElementAxes_checkBox.setChecked(self._model.isDisplayElementAxes())
+        self._ui.displayElementFieldPoints_checkBox.setChecked(self._model.isDisplayElementFieldPoints())
+        self._ui.displayElementNumbers_checkBox.setChecked(self._model.isDisplayElementNumbers())
         self._ui.displayLines_checkBox.setChecked(self._model.isDisplayLines())
         self._ui.displayLinesExterior_checkBox.setChecked(self._model.isDisplayLinesExterior())
         self._ui.displaySurfaces_checkBox.setChecked(self._model.isDisplaySurfaces())
@@ -322,6 +330,7 @@ class FieldFitterWidget(QtWidgets.QWidget):
         self._ui.displayFieldColourBar_checkBox.setChecked(self._model.isDisplayFieldColourBar())
         self._ui.displayFieldContours_checkBox.setChecked(self._model.isDisplayFieldContours())
         self._ui.displayFieldContoursCount_spinBox.setValue(self._model.getDisplayFieldContoursCount())
+        self._updateTimeWidgets()
 
     def _displayAxesClicked(self):
         self._model.setDisplayAxes(self._ui.displayAxes_checkBox.isChecked())
@@ -356,6 +365,9 @@ class FieldFitterWidget(QtWidgets.QWidget):
     def _displayElementAxesClicked(self):
         self._model.setDisplayElementAxes(self._ui.displayElementAxes_checkBox.isChecked())
 
+    def _displayElementFieldPointsClicked(self):
+        self._model.setDisplayElementFieldPoints(self._ui.displayElementFieldPoints_checkBox.isChecked())
+
     def _displayElementNumbersClicked(self):
         self._model.setDisplayElementNumbers(self._ui.displayElementNumbers_checkBox.isChecked())
 
@@ -388,6 +400,46 @@ class FieldFitterWidget(QtWidgets.QWidget):
 
     def _displayFieldContoursCountValueChanged(self, value):
         self._model.setDisplayFieldContoursCount(value)
+
+    def _updateTimeWidgets(self):
+        """
+        Update time slider widgets.
+        """
+        self._ui.displayTime_frame.setEnabled(bool(self._model.getCurrentFitFieldTimeCount()))
+        time = self._model.getTime()
+        self._ui.displayTime_lineEdit.setText(realFormat.format(time))
+        minValue = self._ui.displayTime_horizontalSlider.minimum()
+        self._ui.displayTime_horizontalSlider.setValue(minValue)
+
+    def _displayTimeEntered(self):
+        oldTime = self._model.getTime()
+        time = QLineEdit_parseReal(self._ui.displayTime_lineEdit)
+        if time:
+            time = self._model.setTime(time)
+        else:
+            time = oldTime
+        self._ui.displayTime_lineEdit.setText(realFormat.format(time))
+        minValue = self._ui.displayTime_horizontalSlider.minimum()
+        maxValue = self._ui.displayTime_horizontalSlider.maximum()
+        minTime, maxTime = self._model.getTimeRange()
+        value = minValue
+        if maxTime > minTime:
+            xi = (time - minTime) / (maxTime - minTime)
+            value = int((1.0 - xi) * minValue + xi * maxValue)
+        self._ui.displayTime_horizontalSlider.setValue(value)
+
+    def _displayTimeSliderValueChanged(self):
+        """
+        Time slider value has changed.
+        """
+        value = self._ui.displayTime_horizontalSlider.value()
+        minTime, maxTime = self._model.getTimeRange()
+        minValue = self._ui.displayTime_horizontalSlider.minimum()
+        maxValue = self._ui.displayTime_horizontalSlider.maximum()
+        xi = (value - minValue) / (maxValue - minValue)
+        time = (1.0 - xi) * minTime + xi * maxTime
+        self._ui.displayTime_lineEdit.setText(realFormat.format(time))
+        self._model.setTime(time)
 
     def _stdViewsButtonClicked(self):
         sceneviewer = self._ui.sceneviewerwidget.getSceneviewer()
