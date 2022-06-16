@@ -6,6 +6,7 @@ import json
 
 from opencmiss.utils.zinc.finiteelement import evaluateFieldNodesetRange
 from opencmiss.utils.zinc.general import ChangeManager
+from opencmiss.zinc.element import Element
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.graphics import Graphics
@@ -43,6 +44,7 @@ class FieldFitterModel(object):
             "displayNodePoints": False,
             "displayNodeNumbers": False,
             "displayElementNumbers": False,
+            "displayElementFieldPoints": False,
             "displayElementAxes": False,
             "displayLines": True,
             "displayLinesExterior": False,
@@ -79,12 +81,15 @@ class FieldFitterModel(object):
             trans_blue.setAttributeReal3(Material.ATTRIBUTE_SPECULAR, [0.1, 0.1, 0.1])
             trans_blue.setAttributeReal(Material.ATTRIBUTE_ALPHA, 0.3)
             trans_blue.setAttributeReal(Material.ATTRIBUTE_SHININESS, 0.2)
+
+        spectrummodule = context.getSpectrummodule()
+        defaultSpectrum = spectrummodule.getDefaultSpectrum()
+        defaultSpectrum.setMaterialOverwrite(False)
         glyphmodule = context.getGlyphmodule()
         with ChangeManager(glyphmodule):
             glyphmodule.defineStandardGlyphs()
             spectrummodule = context.getSpectrummodule()
-            spectrum = spectrummodule.getDefaultSpectrum()
-            self._glyphColourBar = glyphmodule.createGlyphColourBar(spectrum)
+            self._glyphColourBar = glyphmodule.createGlyphColourBar(defaultSpectrum)
             self._glyphColourBar.setName("colourbar")
         tessellationmodule = context.getTessellationmodule()
         defaultTessellation = tessellationmodule.getDefaultTessellation()
@@ -130,10 +135,34 @@ class FieldFitterModel(object):
     def getCurrentFitFieldName(self):
         return self._currentFitFieldName
 
-    def setCurrentFitFieldName(self, fieldName):
-        if fieldName != self._currentFitFieldName:
-            self._currentFitFieldName = fieldName
+    def setCurrentFitFieldName(self, fitFieldName, isFit: bool):
+        """
+        :isFit: True if set to fit, otherwise False.
+        :return: True on success, False if failed to set isFit flag.
+        """
+        result = True
+        oldIsFit = self._fitter.isFitField(fitFieldName)
+        result = self._fitter.setFitField(fitFieldName, isFit)
+        if (fitFieldName != self._currentFitFieldName) or (oldIsFit and not isFit):
+            self._currentFitFieldName = fitFieldName
             self._updateGraphicsField()
+        return result
+
+    def getCurrentFitFieldTimeCount(self):
+        """
+        :return: Number of times held for field parameters, or 0 if not time-varying.
+        """
+        if self._currentFitFieldName:
+            return self._fitter.getFieldTimeCount(self._currentFitFieldName)
+        return 0
+
+    def getCurrentFitFieldTimes(self):
+        """
+        :return: List of times in current field time sequence, or [] if none.
+        """
+        if self._currentFitFieldName:
+            return self._fitter.getFieldTimes(self._currentFitFieldName)
+        return []
 
     def fitCurrentField(self):
         if self._currentFitFieldName:
@@ -220,6 +249,12 @@ class FieldFitterModel(object):
 
     def setDisplayElementNumbers(self, show):
         self._setVisibility("displayElementNumbers", show)
+
+    def isDisplayElementFieldPoints(self):
+        return self._getVisibility("displayElementFieldPoints")
+
+    def setDisplayElementFieldPoints(self, show):
+        self._setVisibility("displayElementFieldPoints", show)
 
     def isDisplayLines(self):
         return self._getVisibility("displayLines")
@@ -359,6 +394,54 @@ class FieldFitterModel(object):
         if mesh2d.getSize() == 0:
             return False
         return self.isDisplayLines() and self.isDisplaySurfaces() and not self.isDisplaySurfacesTranslucent()
+
+    def getTimekeeper(self):
+        return self.getContext().getTimekeepermodule().getDefaultTimekeeper()
+
+    def _setTimes(self, times):
+        """
+        Set the range of times in the timekeeper.
+        """
+        timekeeper = self.getTimekeeper()
+        minTime = 0.0
+        maxTime = 0.0
+        if times:
+            minTime = times[0]
+            maxTime = times[-1]
+        timekeeper.setMinimumTime(minTime)
+        timekeeper.setMaximumTime(maxTime)
+        timekeeper.setTime(minTime)
+
+    def getTime(self):
+        """
+        Get the current time in the timekeeper.
+        """
+        timekeeper = self.getTimekeeper()
+        return timekeeper.getTime()
+
+    def getTimeRange(self):
+        """
+        Get the range of times in the timekeeper, set for the current field.
+        :return: minTime, maxTime
+        """
+        timekeeper = self.getTimekeeper()
+        return timekeeper.getMinimumTime(), timekeeper.getMaximumTime()
+
+    def setTime(self, time):
+        """
+        Set time in the timekeeper; time is restricted to be within the minimum-maximum time range.
+        :return: Time actually set
+        """
+        timekeeper = self.getTimekeeper()
+        minTime = timekeeper.getMinimumTime()
+        maxTime = timekeeper.getMaximumTime()
+        useTime = time
+        if useTime < minTime:
+            useTime = minTime
+        elif useTime > maxTime:
+            useTime = maxTime
+        timekeeper.setTime(useTime)
+        return useTime
 
     def _createGraphics(self):
         fieldmodule = self.getFieldmodule()
@@ -507,6 +590,21 @@ class FieldFitterModel(object):
             elementNumbers.setName("displayElementNumbers")
             elementNumbers.setVisibilityFlag(self.isDisplayElementNumbers())
 
+            elementFieldPoints = scene.createGraphicsPoints()
+            elementFieldPoints.setFieldDomainType(Field.DOMAIN_TYPE_MESH_HIGHEST_DIMENSION)
+            elementFieldPoints.setCoordinateField(modelCoordinates)
+            pointattr = elementFieldPoints.getGraphicspointattributes()
+            pointattr.setGlyphShapeType(Glyph.SHAPE_TYPE_POINT)
+            sampleattr = elementFieldPoints.getGraphicssamplingattributes()
+            sampleattr.setElementPointSamplingMode(Element.POINT_SAMPLING_MODE_CELL_CORNERS)
+            elementFieldPoints.setRenderPointSize(2.0)
+            elementFieldPoints.setMaterial(self._materialmodule.findMaterialByName("grey50"))
+            tessellationmodule = self.getContext().getTessellationmodule()
+            defaultTessellation = tessellationmodule.getDefaultTessellation()
+            elementFieldPoints.setTessellation(defaultTessellation)
+            elementFieldPoints.setName("displayElementFieldPoints")
+            elementFieldPoints.setVisibilityFlag(self.isDisplayElementFieldPoints())
+
             elementAxes = scene.createGraphicsPoints()
             elementAxes.setFieldDomainType(Field.DOMAIN_TYPE_MESH_HIGHEST_DIMENSION)
             elementAxes.setCoordinateField(modelCoordinates)
@@ -558,29 +656,61 @@ class FieldFitterModel(object):
         """
         Enable data colouring if there is a current field, and autorange spectrum for it.
         """
-        isFieldFitted = self._fitter.isFieldFitted(self._currentFitFieldName) if self._currentFitFieldName else False
-        field = self.getFieldmodule().findFieldByName(self._currentFitFieldName) if self._currentFitFieldName else None
+        isFieldFitted = False
+        field = Field()
         scene = self.getScene()
         spectrummodule = scene.getSpectrummodule()
-        spectrum = spectrummodule.getDefaultSpectrum() if self._currentFitFieldName else Spectrum()
+        defaultSpectrum = spectrummodule.getDefaultSpectrum()
+        times = []
+        if self._currentFitFieldName:
+            isFieldFitted = self._fitter.isFieldFitted(self._currentFitFieldName)
+            field = self.getFieldmodule().findFieldByName(self._currentFitFieldName)
+            times = self._fitter.getFieldTimes(self._currentFitFieldName)
+            self._setTimes(times)
 
         # make graphics
         with ChangeManager(scene):
             dataPoints = scene.findGraphicsByName("displayDataPoints")
-            dataPoints.setDataField(field if field.isValid() else Field())
-            dataPoints.setSpectrum(spectrum if field.isValid() else Spectrum())
+            dataPoints.setDataField(field)
+            dataPoints.setSpectrum(defaultSpectrum if field.isValid() else Spectrum())
+
+            elementFieldPoints = scene.findGraphicsByName("displayElementFieldPoints")
+            elementFieldPoints.setDataField(field if isFieldFitted else Field())
+            elementFieldPoints.setSpectrum(defaultSpectrum if isFieldFitted else Spectrum())
 
             surfaces = scene.findGraphicsByName("displaySurfaces")
             surfaces.setDataField(field if isFieldFitted else Field())
-            surfaces.setSpectrum(spectrum if isFieldFitted else Spectrum())
+            surfaces.setSpectrum(defaultSpectrum if isFieldFitted else Spectrum())
 
             contours = scene.findGraphicsByName("displayFieldContours")
             if contours.isValid():
                 scene.removeGraphics(contours)
                 del contours
 
-            spectrum.autorange(scene, Scenefilter())
-            spectrum.setMaterialOverwrite(False)
+            with ChangeManager(spectrummodule):
+                if times:
+                    minFieldValue = None
+                    maxFieldValue = None
+                    componentCount = field.getNumberOfComponents()
+                    for time in reversed(times):  # so we end at lowest time
+                        self.setTime(time)
+                        result, vMin, vMax = scene.getSpectrumDataRange(Scenefilter(), defaultSpectrum, componentCount)
+                        if componentCount > 1:
+                            vMin = vMin[0]
+                            vMax = vMax[0]
+                        if minFieldValue is None:
+                            minFieldValue = vMin
+                            maxFieldValue = vMax
+                        else:
+                            if vMin < minFieldValue:
+                                minFieldValue = vMin
+                            if vMax > maxFieldValue:
+                                maxFieldValue = vMax
+                    spectrumcomponent = defaultSpectrum.getFirstSpectrumcomponent()
+                    spectrumcomponent.setRangeMinimum(minFieldValue)
+                    spectrumcomponent.setRangeMaximum(maxFieldValue)
+                else:
+                    defaultSpectrum.autorange(scene, Scenefilter())
 
             if field.isValid():
                 self._updateDataFieldLabels()
@@ -618,8 +748,8 @@ class FieldFitterModel(object):
             return
         scene = self.getScene()
         spectrummodule = scene.getSpectrummodule()
-        spectrum = spectrummodule.getDefaultSpectrum()
-        spectrumcomponent = spectrum.getFirstSpectrumcomponent()
+        defaultSpectrum = spectrummodule.getDefaultSpectrum()
+        spectrumcomponent = defaultSpectrum.getFirstSpectrumcomponent()
         minValue = spectrumcomponent.getRangeMinimum()
         maxValue = spectrumcomponent.getRangeMaximum()
         count = self.getDisplayFieldContoursCount()
@@ -631,7 +761,7 @@ class FieldFitterModel(object):
                 contours.setCoordinateField(self._fitter.getModelCoordinatesField())
                 contours.setIsoscalarField(field)
                 contours.setDataField(field)
-                contours.setSpectrum(spectrum)
+                contours.setSpectrum(defaultSpectrum)
                 contours.setName("displayFieldContours")
                 contours.setVisibilityFlag(self.isDisplayFieldContours())
             contours.setRangeIsovalues(count, minValue + delta, maxValue - delta)

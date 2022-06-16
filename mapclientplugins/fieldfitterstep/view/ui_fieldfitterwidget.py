@@ -28,6 +28,8 @@ class Ui_FieldFitterWidget(object):
         FieldFitterWidget.setSizePolicy(sizePolicy)
         FieldFitterWidget.setMinimumSize(QSize(0, 0))
         self.horizontalLayout = QHBoxLayout(FieldFitterWidget)
+        self.horizontalLayout.setSpacing(0)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.dockWidget = QDockWidget(FieldFitterWidget)
         self.dockWidget.setObjectName(u"dockWidget")
@@ -43,6 +45,10 @@ class Ui_FieldFitterWidget(object):
         sizePolicy1.setHeightForWidth(self.dockWidgetContents.sizePolicy().hasHeightForWidth())
         self.dockWidgetContents.setSizePolicy(sizePolicy1)
         self.verticalLayout = QVBoxLayout(self.dockWidgetContents)
+#ifndef Q_OS_MAC
+        self.verticalLayout.setSpacing(6)
+#endif
+        self.verticalLayout.setContentsMargins(6, 6, 6, 6)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.identifier_label = QLabel(self.dockWidgetContents)
         self.identifier_label.setObjectName(u"identifier_label")
@@ -331,6 +337,11 @@ class Ui_FieldFitterWidget(object):
 
         self.horizontalLayout_4.addWidget(self.displayElementNumbers_checkBox)
 
+        self.displayElementFieldPoints_checkBox = QCheckBox(self.displayElements_frame)
+        self.displayElementFieldPoints_checkBox.setObjectName(u"displayElementFieldPoints_checkBox")
+
+        self.horizontalLayout_4.addWidget(self.displayElementFieldPoints_checkBox)
+
         self.displayElementAxes_checkBox = QCheckBox(self.displayElements_frame)
         self.displayElementAxes_checkBox.setObjectName(u"displayElementAxes_checkBox")
         sizePolicy4.setHeightForWidth(self.displayElementAxes_checkBox.sizePolicy().hasHeightForWidth())
@@ -438,6 +449,43 @@ class Ui_FieldFitterWidget(object):
 
         self.verticalLayout_7.addWidget(self.displayField_frame)
 
+        self.displayTime_frame = QFrame(self.display_groupBox)
+        self.displayTime_frame.setObjectName(u"displayTime_frame")
+        self.displayTime_frame.setFrameShape(QFrame.StyledPanel)
+        self.displayTime_frame.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_13 = QHBoxLayout(self.displayTime_frame)
+        self.horizontalLayout_13.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
+        self.displayTime_label = QLabel(self.displayTime_frame)
+        self.displayTime_label.setObjectName(u"displayTime_label")
+
+        self.horizontalLayout_13.addWidget(self.displayTime_label)
+
+        self.displayTime_lineEdit = QLineEdit(self.displayTime_frame)
+        self.displayTime_lineEdit.setObjectName(u"displayTime_lineEdit")
+        sizePolicy5 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy5.setHorizontalStretch(1)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.displayTime_lineEdit.sizePolicy().hasHeightForWidth())
+        self.displayTime_lineEdit.setSizePolicy(sizePolicy5)
+
+        self.horizontalLayout_13.addWidget(self.displayTime_lineEdit)
+
+        self.displayTime_horizontalSlider = QSlider(self.displayTime_frame)
+        self.displayTime_horizontalSlider.setObjectName(u"displayTime_horizontalSlider")
+        sizePolicy6 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        sizePolicy6.setHorizontalStretch(3)
+        sizePolicy6.setVerticalStretch(0)
+        sizePolicy6.setHeightForWidth(self.displayTime_horizontalSlider.sizePolicy().hasHeightForWidth())
+        self.displayTime_horizontalSlider.setSizePolicy(sizePolicy6)
+        self.displayTime_horizontalSlider.setOrientation(Qt.Horizontal)
+        self.displayTime_horizontalSlider.setTickPosition(QSlider.NoTicks)
+
+        self.horizontalLayout_13.addWidget(self.displayTime_horizontalSlider)
+
+
+        self.verticalLayout_7.addWidget(self.displayTime_frame)
+
 
         self.verticalLayout.addWidget(self.display_groupBox)
 
@@ -474,11 +522,11 @@ class Ui_FieldFitterWidget(object):
 
         self.sceneviewerwidget = SceneviewerWidget(FieldFitterWidget)
         self.sceneviewerwidget.setObjectName(u"sceneviewerwidget")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        sizePolicy5.setHorizontalStretch(1)
-        sizePolicy5.setVerticalStretch(1)
-        sizePolicy5.setHeightForWidth(self.sceneviewerwidget.sizePolicy().hasHeightForWidth())
-        self.sceneviewerwidget.setSizePolicy(sizePolicy5)
+        sizePolicy7 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy7.setHorizontalStretch(1)
+        sizePolicy7.setVerticalStretch(1)
+        sizePolicy7.setHeightForWidth(self.sceneviewerwidget.sizePolicy().hasHeightForWidth())
+        self.sceneviewerwidget.setSizePolicy(sizePolicy7)
         self.sceneviewerwidget.setAutoFillBackground(False)
 
         self.horizontalLayout.addWidget(self.sceneviewerwidget)
@@ -527,6 +575,7 @@ class Ui_FieldFitterWidget(object):
         self.displayNodePoints_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Node points", None))
         self.displayNodeNumbers_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Node numbers", None))
         self.displayElementNumbers_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Element numbers", None))
+        self.displayElementFieldPoints_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Element field points", None))
         self.displayElementAxes_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Element axes", None))
         self.displayLines_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Lines", None))
         self.displayLinesExterior_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Exterior", None))
@@ -536,6 +585,7 @@ class Ui_FieldFitterWidget(object):
         self.displaySurfacesWireframe_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Wireframe", None))
         self.displayFieldColourBar_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Field colour bar", None))
         self.displayFieldContours_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Field contours:", None))
+        self.displayTime_label.setText(QCoreApplication.translate("FieldFitterWidget", u"Time:", None))
         self.viewAll_pushButton.setText(QCoreApplication.translate("FieldFitterWidget", u"View All", None))
         self.stdViews_pushButton.setText(QCoreApplication.translate("FieldFitterWidget", u"Std. Views", None))
 #if QT_CONFIG(tooltip)
