@@ -687,31 +687,33 @@ class FieldFitterModel(object):
                 scene.removeGraphics(contours)
                 del contours
 
-            with ChangeManager(spectrummodule):
-                if times:
-                    minFieldValue = None
-                    maxFieldValue = None
-                    componentCount = field.getNumberOfComponents()
-                    for time in reversed(times):  # so we end at lowest time
-                        self.setTime(time)
-                        result, vMin, vMax = scene.getSpectrumDataRange(Scenefilter(), defaultSpectrum, componentCount)
-                        if componentCount > 1:
-                            vMin = vMin[0]
-                            vMax = vMax[0]
-                        if minFieldValue is None:
+        # workaround: getSpectrumDataRange() is not correct for timekeeper time during with ChangeManager(scene):
+        with ChangeManager(spectrummodule):
+            if times:
+                minFieldValue = None
+                maxFieldValue = None
+                componentCount = field.getNumberOfComponents()
+                for time in reversed(times):  # so we end at lowest time
+                    self.setTime(time)
+                    result, vMin, vMax = scene.getSpectrumDataRange(Scenefilter(), defaultSpectrum, componentCount)
+                    if componentCount > 1:
+                        vMin = vMin[0]
+                        vMax = vMax[0]
+                    if minFieldValue is None:
+                        minFieldValue = vMin
+                        maxFieldValue = vMax
+                    else:
+                        if vMin < minFieldValue:
                             minFieldValue = vMin
+                        if vMax > maxFieldValue:
                             maxFieldValue = vMax
-                        else:
-                            if vMin < minFieldValue:
-                                minFieldValue = vMin
-                            if vMax > maxFieldValue:
-                                maxFieldValue = vMax
-                    spectrumcomponent = defaultSpectrum.getFirstSpectrumcomponent()
-                    spectrumcomponent.setRangeMinimum(minFieldValue)
-                    spectrumcomponent.setRangeMaximum(maxFieldValue)
-                else:
-                    defaultSpectrum.autorange(scene, Scenefilter())
+                spectrumcomponent = defaultSpectrum.getFirstSpectrumcomponent()
+                spectrumcomponent.setRangeMinimum(minFieldValue)
+                spectrumcomponent.setRangeMaximum(maxFieldValue)
+            else:
+                defaultSpectrum.autorange(scene, Scenefilter())
 
+        with ChangeManager(scene):
             if field.isValid():
                 self._updateDataFieldLabels()
 
