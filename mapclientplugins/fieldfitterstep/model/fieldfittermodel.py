@@ -668,6 +668,10 @@ class FieldFitterModel(object):
             times = self._fitter.getFieldTimes(self._currentFitFieldName)
             self._setTimes(times)
 
+        modelFitGroup = self._fitter.getModelFitGroup()
+        if not modelFitGroup:
+            modelFitGroup = Field()
+
         # make graphics
         with ChangeManager(scene):
             dataPoints = scene.findGraphicsByName("displayDataPoints")
@@ -675,10 +679,12 @@ class FieldFitterModel(object):
             dataPoints.setSpectrum(defaultSpectrum if field.isValid() else Spectrum())
 
             elementFieldPoints = scene.findGraphicsByName("displayElementFieldPoints")
+            elementFieldPoints.setSubgroupField(modelFitGroup)
             elementFieldPoints.setDataField(field if isFieldFitted else Field())
             elementFieldPoints.setSpectrum(defaultSpectrum if isFieldFitted else Spectrum())
 
             surfaces = scene.findGraphicsByName("displaySurfaces")
+            surfaces.setSubgroupField(modelFitGroup)
             surfaces.setDataField(field if isFieldFitted else Field())
             surfaces.setSpectrum(defaultSpectrum if isFieldFitted else Spectrum())
 
@@ -748,6 +754,9 @@ class FieldFitterModel(object):
         field = self.getFieldmodule().findFieldByName(self._currentFitFieldName) if self._currentFitFieldName else None
         if (not field) or (field.getNumberOfComponents() > 1) or (not self._fitter.isFieldFitted(field.getName())):
             return
+        modelFitGroup = self._fitter.getModelFitGroup()
+        if not modelFitGroup:
+            modelFitGroup = Field()
         scene = self.getScene()
         spectrummodule = scene.getSpectrummodule()
         defaultSpectrum = spectrummodule.getDefaultSpectrum()
@@ -766,4 +775,5 @@ class FieldFitterModel(object):
                 contours.setSpectrum(defaultSpectrum)
                 contours.setName("displayFieldContours")
                 contours.setVisibilityFlag(self.isDisplayFieldContours())
+            contours.setSubgroupField(modelFitGroup)
             contours.setRangeIsovalues(count, minValue + delta, maxValue - delta)
