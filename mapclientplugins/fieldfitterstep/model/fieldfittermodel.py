@@ -140,7 +140,6 @@ class FieldFitterModel(object):
         :isFit: True if set to fit, otherwise False.
         :return: True on success, False if failed to set isFit flag.
         """
-        result = True
         oldIsFit = self._fitter.isFitField(fitFieldName)
         result = self._fitter.setFitField(fitFieldName, isFit)
         if (fitFieldName != self._currentFitFieldName) or (oldIsFit and not isFit):
