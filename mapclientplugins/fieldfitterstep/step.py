@@ -38,8 +38,7 @@ class FieldFitterStep(WorkflowStepMountPoint):
         self._port1_inputZincDataFile = None  # http://physiomeproject.org/workflow/1.0/rdf-schema#file_location
         self._port2_outputZincModelFile = None  # http://physiomeproject.org/workflow/1.0/rdf-schema#file_location
         # Config:
-        self._config = {}
-        self._config['identifier'] = ''
+        self._config = {'identifier': ''}
         self._model = None
         self._view = None
 
@@ -54,6 +53,7 @@ class FieldFitterStep(WorkflowStepMountPoint):
         self._view = FieldFitterWidget(self._model)
         self._view.registerDoneExecution(self._doneExecution)
         self._setCurrentWidget(self._view)
+
 
     def setPortData(self, index, dataIn):
         """
