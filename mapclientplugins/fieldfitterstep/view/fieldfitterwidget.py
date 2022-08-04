@@ -1,6 +1,8 @@
 """
 User interface for github.com/ABI-Software/fieldfitter
 """
+import webbrowser
+
 from PySide2 import QtCore, QtGui, QtWidgets
 
 from mapclientplugins.fieldfitterstep.utils.zinc_utils import field_is_managed_real_1_to_3_components
@@ -129,6 +131,7 @@ class FieldFitterWidget(QtWidgets.QWidget):
         self._ui.parametersGradient2Penalty_lineEdit.editingFinished.connect(
             self._parametersGradient2PenaltyEntered)
         self._ui.controlsFit_pushButton.clicked.connect(self._fitButtonClicked)
+        self._ui.pushButtonDocumentation.clicked.connect(self._documentationButtonClicked)
         self._ui.done_pushButton.clicked.connect(self._doneButtonClicked)
 
     def _updateFitWidgets(self):
@@ -271,6 +274,9 @@ class FieldFitterWidget(QtWidgets.QWidget):
         if update:
             self._updateFitFieldsListView()
         self._updateTimeWidgets()
+
+    def _documentationButtonClicked(self):
+        webbrowser.open("https://abi-mapping-tools.readthedocs.io/en/latest/mapclientplugins.fieldfitterstep/docs/index.html")
 
     def _doneButtonClicked(self):
         self._model.done()

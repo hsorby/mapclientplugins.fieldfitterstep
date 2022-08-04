@@ -496,6 +496,11 @@ class Ui_FieldFitterWidget(object):
         self.horizontalLayout_2 = QHBoxLayout(self.bottom_frame)
         self.horizontalLayout_2.setContentsMargins(3, 3, 3, 3)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.pushButtonDocumentation = QPushButton(self.bottom_frame)
+        self.pushButtonDocumentation.setObjectName(u"pushButtonDocumentation")
+
+        self.horizontalLayout_2.addWidget(self.pushButtonDocumentation)
+
         self.viewAll_pushButton = QPushButton(self.bottom_frame)
         self.viewAll_pushButton.setObjectName(u"viewAll_pushButton")
 
@@ -586,6 +591,7 @@ class Ui_FieldFitterWidget(object):
         self.displayFieldColourBar_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Field colour bar", None))
         self.displayFieldContours_checkBox.setText(QCoreApplication.translate("FieldFitterWidget", u"Field contours:", None))
         self.displayTime_label.setText(QCoreApplication.translate("FieldFitterWidget", u"Time:", None))
+        self.pushButtonDocumentation.setText(QCoreApplication.translate("FieldFitterWidget", u"Online Documentation", None))
         self.viewAll_pushButton.setText(QCoreApplication.translate("FieldFitterWidget", u"View All", None))
         self.stdViews_pushButton.setText(QCoreApplication.translate("FieldFitterWidget", u"Std. Views", None))
 #if QT_CONFIG(tooltip)
