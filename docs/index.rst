@@ -4,7 +4,7 @@ Field Fitter
 Overview
 --------
 
-The **Fitter Fitter** tool is an interactive user interface for defining and fitting continuous fields over a scaffold, from discrete, non-geometric data, e.g. physiological measurements at points over the domain of the scaffold. It works with data points on which both the non-geometric and coordinate field values are defined, with the coordinates relative to a coordinate field on the input scaffold. The output fields are all defined with the same interpolation as the input scaffold's coordinate field.
+The **Field Fitter** tool is an interactive user interface for defining and fitting continuous fields over a scaffold, from discrete, non-geometric data, e.g. physiological measurements at points over the domain of the scaffold. It works with data points on which both the non-geometric and coordinate field values are defined, with the coordinates relative to a coordinate field on the input scaffold. The output fields are all defined with the same interpolation as the input scaffold's coordinate field.
 
 The tool fits scalar and multi-component fields. It also fits time-varying field data, generating a continuous field defined over space and time.
 
