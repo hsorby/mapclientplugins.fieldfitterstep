@@ -3,7 +3,7 @@ User interface for github.com/ABI-Software/fieldfitter
 """
 import webbrowser
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 from mapclientplugins.fieldfitterstep.utils.zinc_utils import field_is_managed_real_1_to_3_components
 from mapclientplugins.fieldfitterstep.view.ui_fieldfitterwidget import Ui_FieldFitterWidget
