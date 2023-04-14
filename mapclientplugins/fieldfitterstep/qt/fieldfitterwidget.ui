@@ -828,12 +828,12 @@
   <customwidget>
    <class>FieldChooserWidget</class>
    <extends>QComboBox</extends>
-   <header>opencmiss/zincwidgets/fieldchooserwidget.h</header>
+   <header>cmlibs/widgets/fieldchooserwidget.h</header>
   </customwidget>
   <customwidget>
    <class>SceneviewerWidget</class>
    <extends>QWidget</extends>
-   <header>opencmiss/zincwidgets/sceneviewerwidget.h</header>
+   <header>cmlibs/widgets/sceneviewerwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
