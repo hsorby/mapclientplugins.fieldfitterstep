@@ -3,12 +3,12 @@ Created on Jul 23, 2015
 
 @author: Richard Christie
 """
-from opencmiss.maths.vectorops import add, matrix_vector_mult
-from opencmiss.utils.zinc.general import ChangeManager
-from opencmiss.zinc.node import Node, Nodeset
-from opencmiss.zinc.field import Field, FieldGroup
-from opencmiss.zinc.scene import Scene
-from opencmiss.zinc.status import OK as ZINC_OK
+from cmlibs.maths.vectorops import add, matrix_vector_mult
+from cmlibs.utils.zinc.general import ChangeManager
+from cmlibs.zinc.node import Node, Nodeset
+from cmlibs.zinc.field import Field, FieldGroup
+from cmlibs.zinc.scene import Scene
+from cmlibs.zinc.status import OK as ZINC_OK
 
 
 def copyNodalParameters(sourceField, targetField, time = 0.0):

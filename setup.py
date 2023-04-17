@@ -37,11 +37,11 @@ readme = readfile("README.rst", split=True)[3:]  # skip title
 # into the 'requirements.txt' file.
 requires = [
     # minimal requirements listing
-    "opencmiss.maths",
-    "fieldfitter >= 0.2",
-    "opencmiss.utils >= 0.3",
-    "opencmiss.zinc > 3.7",
-    "opencmiss.zincwidgets >= 2.0",
+    "cmlibs.maths >= 0.3"
+    "fieldfitter >= 0.3",
+    "cmlibs.utils >= 0.4",
+    "cmlibs.zinc > 3.99",
+    "cmlibs.widgets >= 2.3",
     "PySide6"
 ]
 source_license = readfile("LICENSE")
