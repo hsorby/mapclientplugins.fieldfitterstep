@@ -4,16 +4,16 @@ Field Fitter model adding visualisations to github.com/ABI-Software/fieldfitter
 import os
 import json
 
-from opencmiss.utils.zinc.finiteelement import evaluateFieldNodesetRange
-from opencmiss.utils.zinc.general import ChangeManager
-from opencmiss.zinc.element import Element
-from opencmiss.zinc.field import Field
-from opencmiss.zinc.glyph import Glyph
-from opencmiss.zinc.graphics import Graphics
-from opencmiss.zinc.material import Material
-from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_NORMALISED_WINDOW_FIT_LEFT
-from opencmiss.zinc.scenefilter import Scenefilter
-from opencmiss.zinc.spectrum import Spectrum
+from cmlibs.utils.zinc.finiteelement import evaluateFieldNodesetRange
+from cmlibs.utils.zinc.general import ChangeManager
+from cmlibs.zinc.element import Element
+from cmlibs.zinc.field import Field
+from cmlibs.zinc.glyph import Glyph
+from cmlibs.zinc.graphics import Graphics
+from cmlibs.zinc.material import Material
+from cmlibs.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_NORMALISED_WINDOW_FIT_LEFT
+from cmlibs.zinc.scenefilter import Scenefilter
+from cmlibs.zinc.spectrum import Spectrum
 from fieldfitter.fitter import Fitter
 
 

@@ -21,8 +21,8 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QDockWidget, QFormLayout
     QSizePolicy, QSlider, QSpacerItem, QSpinBox,
     QVBoxLayout, QWidget)
 
-from opencmiss.zincwidgets.fieldchooserwidget import FieldChooserWidget
-from opencmiss.zincwidgets.sceneviewerwidget import SceneviewerWidget
+from cmlibs.widgets.fieldchooserwidget import FieldChooserWidget
+from cmlibs.widgets.sceneviewerwidget import SceneviewerWidget
 
 class Ui_FieldFitterWidget(object):
     def setupUi(self, FieldFitterWidget):
