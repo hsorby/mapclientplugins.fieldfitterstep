@@ -41,7 +41,7 @@ requires = [
     "cmlibs.utils",
     "cmlibs.widgets",
     "cmlibs.zinc",
-    "fieldfitter >= 0.2",
+    "fieldfitter >= 0.3",
     "PySide6"
 ]
 source_license = readfile("LICENSE")
