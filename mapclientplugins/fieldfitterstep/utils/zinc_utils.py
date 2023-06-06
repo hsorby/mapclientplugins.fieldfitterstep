@@ -4,7 +4,8 @@ Created on Jul 23, 2015
 @author: Richard Christie
 """
 from cmlibs.maths.vectorops import add, matrix_vector_mult
-from cmlibs.utils.zinc.general import ChangeManager
+from cmlibs.utils.zinc.general import ChangeManager, HierarchicalChangeManager
+from cmlibs.widgets.definitions import SELECTION_GROUP_NAME
 from cmlibs.zinc.node import Node, Nodeset
 from cmlibs.zinc.field import Field, FieldGroup
 from cmlibs.zinc.scene import Scene
@@ -57,6 +58,7 @@ def copyNodalParameters(sourceField, targetField, time = 0.0):
     if not success:
         print('zinc.copyNodalParameters: failed to get/set some values')
     return success
+
 
 def transformCoordinates(field, rotationScale, offset, time = 0.0):
     """
@@ -117,6 +119,7 @@ def transformCoordinates(field, rotationScale, offset, time = 0.0):
         print('zinc.transformCoordinates: failed to get/set some values')
     return success
 
+
 def get_scene_selection_group(scene : Scene, subelementHandlingMode = FieldGroup.SUBELEMENT_HANDLING_MODE_FULL):
     """
     Get existing scene selection group of standard name.
@@ -130,7 +133,6 @@ def get_scene_selection_group(scene : Scene, subelementHandlingMode = FieldGroup
         return selection_group
     return None
 
-selection_group_name = 'cmiss_selection'
 
 def create_scene_selection_group(scene : Scene, subelementHandlingMode = FieldGroup.SUBELEMENT_HANDLING_MODE_FULL):
     """
@@ -145,7 +147,7 @@ def create_scene_selection_group(scene : Scene, subelementHandlingMode = FieldGr
     region = scene.getRegion()
     fieldmodule = region.getFieldmodule()
     with ChangeManager(fieldmodule):
-        selection_group = fieldmodule.findFieldByName(selection_group_name)
+        selection_group = fieldmodule.findFieldByName(SELECTION_GROUP_NAME)
         if selection_group.isValid():
             selection_group = selection_group.castGroup()
             if selection_group.isValid():
@@ -153,43 +155,47 @@ def create_scene_selection_group(scene : Scene, subelementHandlingMode = FieldGr
                 selection_group.setManaged(False)
         if not selection_group.isValid():
             selection_group = fieldmodule.createFieldGroup()
-            selection_group.setName(selection_group_name)
+            selection_group.setName(SELECTION_GROUP_NAME)
         selection_group.setSubelementHandlingMode(subelementHandlingMode)
     scene.setSelectionField(selection_group)
     return selection_group
 
-def group_add_group_elements(group : FieldGroup, other_group : FieldGroup, highest_dimension_only=True):
+
+def group_add_group_elements(group: FieldGroup, other_group: FieldGroup, highest_dimension_only=True):
     """
     Add to group elements from other_group.
+    :param group:  Zinc FieldGroup to modify.
+    :param other_group:  Zinc FieldGroup to add elements from.
     :param highest_dimension_only: If set (default), only add elements of
     highest dimension present in other_group, otherwise add all dimensions.
     """
-    fieldmodule = group.getFieldmodule()
-    with ChangeManager(fieldmodule):
+    region = group.getFieldmodule().getRegion()
+    with HierarchicalChangeManager(region):
+        other_fieldmodule = other_group.getFieldmodule()
         for dimension in range(3, 0, -1):
-            mesh = fieldmodule.findMeshByDimension(dimension)
-            other_element_group = other_group.getFieldElementGroup(mesh)
-            if other_element_group.isValid() and (other_element_group.getMeshGroup().getSize() > 0):
-                element_group = group.getFieldElementGroup(mesh)
-                if not element_group.isValid():
-                    element_group = group.createFieldElementGroup(mesh)
-                mesh_group = element_group.getMeshGroup()
-                mesh_group.addElementsConditional(other_element_group)
+            mesh = other_fieldmodule.findMeshByDimension(dimension)
+            other_mesh_group = other_group.getMeshGroup(mesh)
+            if other_mesh_group.isValid() and (other_mesh_group.getSize() > 0):
+                mesh_group = group.getOrCreateMeshGroup(mesh)
+                mesh_group.addElementsConditional(other_group)
                 if highest_dimension_only:
                     break
 
-def group_add_group_nodes(group : FieldGroup, other_group : FieldGroup, nodeset : Nodeset):
+
+def group_add_group_nodes(group: FieldGroup, other_group: FieldGroup, nodeset: Nodeset):
     """
     Add to group elements and/or nodes from other_group.
+    :param group:  Zinc FieldGroup to modify.
+    :param other_group:  Zinc FieldGroup to add nodes from.
     :param nodeset: Nodeset to add nodes from.
     """
-    other_node_group = other_group.getFieldNodeGroup(nodeset)
-    if other_node_group.isValid() and (other_node_group.getNodesetGroup().getSize() > 0):
-        node_group = group.getFieldNodeGroup(nodeset)
-        if not node_group.isValid():
-            node_group = group.createFieldNodeGroup(nodeset)
-        nodeset_group = node_group.getNodesetGroup()
-        nodeset_group.addNodesConditional(other_group.getFieldNodeGroup(nodeset))
+    other_nodeset_group = other_group.getNodesetGroup(nodeset)
+    if other_nodeset_group.isValid() and (other_nodeset_group.getSize() > 0):
+        region = group.getFieldmodule().getRegion()
+        with HierarchicalChangeManager(region):
+            nodeset_group = group.getOrCreateNodesetGroup(nodeset)
+            nodeset_group.addNodesConditional(other_group)
+
 
 def field_is_managed_real_1_to_3_components(field_in: Field):
     """
