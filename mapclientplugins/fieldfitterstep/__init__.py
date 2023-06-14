@@ -3,7 +3,7 @@
 MAP Client Plugin
 """
 
-__version__ = '0.3.0'
+__version__ = '0.4.0'
 __author__ = 'Auckland Bioengineering Institute'
 __stepname__ = 'Field Fitter'
 __location__ = 'https://github.com/ABI-Software/mapclientplugins.fieldfitterstep'

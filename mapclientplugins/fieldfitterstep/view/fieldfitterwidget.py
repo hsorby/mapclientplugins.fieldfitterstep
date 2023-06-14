@@ -6,9 +6,8 @@ import webbrowser
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from cmlibs.maths.vectorops import dot, magnitude, mult, normalize, sub
-from cmlibs.utils.zinc.field import field_is_managed_coordinates, field_is_managed_group
-
-from mapclientplugins.fieldfitterstep.utils.zinc_utils import field_is_managed_real_1_to_3_components
+from cmlibs.utils.zinc.field import field_is_managed_coordinates, field_is_managed_group, \
+    field_is_managed_real_1_to_3_components
 from mapclientplugins.fieldfitterstep.view.ui_fieldfitterwidget import Ui_FieldFitterWidget
 
 
