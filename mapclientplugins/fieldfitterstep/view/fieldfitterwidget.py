@@ -172,7 +172,7 @@ class FieldFitterWidget(QtWidgets.QWidget):
         group = self._ui.configModelFitGroup_fieldChooser.getField()
         if group:
             group = group.castGroup()
-            if not group.isValid:
+            if not group.isValid():
                 group = None
         self._model.setModelFitGroup(group)
 
