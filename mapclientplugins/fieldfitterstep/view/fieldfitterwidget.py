@@ -8,36 +8,11 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from cmlibs.maths.vectorops import dot, magnitude, mult, normalize, sub
 from cmlibs.utils.zinc.field import field_is_managed_coordinates, field_is_managed_group, \
     field_is_managed_real_1_to_3_components
+from cmlibs.widgets.utils import parse_vector, parse_real
 from mapclientplugins.fieldfitterstep.view.ui_fieldfitterwidget import Ui_FieldFitterWidget
 
 
 realFormat = "{:.4g}"
-
-
-def QLineEdit_parseVector(lineedit):
-    """
-    Return one or more component real vector as list from comma separated text in QLineEdit widget
-    or None if invalid.
-    """
-    try:
-        text = lineedit.text()
-        values = [float(value) for value in text.split(",")]
-        return values
-    except ValueError:
-        pass
-    return None
-
-
-def QLineEdit_parseReal(lineedit):
-    """
-    Return real value from line edit text, or None if failed.
-    """
-    try:
-        value = float(lineedit.text())
-        return value
-    except ValueError:
-        pass
-    return None
 
 
 class FieldFitterWidget(QtWidgets.QWidget):
@@ -253,7 +228,7 @@ class FieldFitterWidget(QtWidgets.QWidget):
         self._ui.parametersGradient1Penalty_lineEdit.setText(s)
 
     def _parametersGradient1PenaltyEntered(self):
-        value = QLineEdit_parseVector(self._ui.parametersGradient1Penalty_lineEdit)
+        value = parse_vector(self._ui.parametersGradient1Penalty_lineEdit)
         self._model.setGradient1Penalty(value)
         self._updateParametersGradient1Penalty()
 
@@ -262,7 +237,7 @@ class FieldFitterWidget(QtWidgets.QWidget):
         self._ui.parametersGradient2Penalty_lineEdit.setText(s)
 
     def _parametersGradient2PenaltyEntered(self):
-        value = QLineEdit_parseVector(self._ui.parametersGradient2Penalty_lineEdit)
+        value = parse_vector(self._ui.parametersGradient2Penalty_lineEdit)
         self._model.setGradient2Penalty(value)
         self._updateParametersGradient2Penalty()
 
@@ -422,7 +397,7 @@ class FieldFitterWidget(QtWidgets.QWidget):
 
     def _displayTimeEntered(self):
         oldTime = self._model.getTime()
-        time = QLineEdit_parseReal(self._ui.displayTime_lineEdit)
+        time = parse_real(self._ui.displayTime_lineEdit)
         if time:
             time = self._model.setTime(time)
         else:
