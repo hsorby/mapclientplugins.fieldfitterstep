@@ -39,7 +39,7 @@ requires = [
     # minimal requirements listing
     "cmlibs.maths >= 0.3",
     "cmlibs.utils >= 0.6",
-    "cmlibs.widgets >= 0.7",
+    "cmlibs.widgets >= 0.8",
     "cmlibs.zinc >= 4.0",
     "fieldfitter >= 0.4",
     "PySide6"
